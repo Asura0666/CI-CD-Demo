@@ -35,8 +35,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Set image version (using commit SHA)
+        id: vars
+        run: echo "IMAGE_TAG=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Build and push Docker image (latest + version)
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           IMAGE_NAME: ci-cd-demo
-        run: docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest . && docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
+        run:
+          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest -t $DOCKERHUB_USERNAME/$IMAGE_NAME:${IMAGE_TAG} . && \
+          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest && \
+          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:${IMAGE_TAG}
